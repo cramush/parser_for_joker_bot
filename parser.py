@@ -1,7 +1,7 @@
 import requests
 import lxml.html
-from lxml import etree
 from bs4 import BeautifulSoup
+import time
 
 URL = "https://www.anekdot.ru/tags/"
 HEADERS = {
@@ -10,77 +10,70 @@ HEADERS = {
 
 
 def main():
+    # t = time.time()
     request = requests.get(URL, headers=HEADERS)
-    get_tags(request)
+    get_tag_list(request)
+    # print(time.time() - t)
 
 
-def get_tags(html):
+def get_tag_list(html):
     tree = lxml.html.document_fromstring(html.text)
     content = tree.xpath('//div[@class="tags-cloud"]/a')
     # print(content)
-    tags = []
+    tag_list = []
     for element in content:
         href = element.get("href")
-        tags.append(href)
-    # print(tags)
-    get_tags_html(tags)
-
-
-def get_tags_html(tags):
-
-    link = tags[0]
-    link = link.replace("/tags/", "")
-    url = URL + link
-    # print(url)
-    request = requests.get(url, headers=HEADERS)
-    get_pages_count(request)
-
-
-def get_pages_count(html):
-    tree = lxml.html.document_fromstring(html.text)
-    pages = tree.xpath('//div[@class="pageslist"]/a')
-    next_pages = tree.xpath('//div[@class="pageslist"]/a/text()')
-    # print(next_pages)
-
-    list_links = []
-    for element in pages:
-        links = element.get("href")
-        list_links.append(links)
-    # print(list_links)
-
-    count = 2
-    if "след. →" in next_pages:
-        link = list_links[0]
-        link = link.replace("/tags/", "")[:-1] + str(count)
+        link = href.replace("/tags/", "")
         url = URL + link
-        print(url)
-        request = requests.get(url, headers=HEADERS)
-        get_jokes_and_tags(request)
-    else:
-        print(False)
+        tag_list.append(url)
+    # print(tag_list)
+    for tag in tag_list:
+        move_to_last_pages(tag)
 
 
-def get_jokes_and_tags(html):
-    tree = lxml.html.document_fromstring(html.text)
+def move_to_last_pages(url):
+    request = requests.get(url, headers=HEADERS)
+    tree = lxml.html.document_fromstring(request.text)
+    pages = tree.xpath('//div[@class="pageslist"]/a')
+    last_pages = tree.xpath('//div[@class="pageslist"]/a/text()')
+
+    get_jokes_and_tags(url)
+    list_links = []
+    if "след. →" in last_pages:
+        for element in pages:
+            link = element.get("href")
+            link = URL + (link.replace("/tags/", ""))
+            list_links.append(link)
+        second_joke = list_links[-1]
+        move_to_last_pages(second_joke)
+
+
+def get_jokes_and_tags(url):
+    request = requests.get(url, headers=HEADERS)
+    tree = lxml.html.document_fromstring(request.text)
     tag = tree.xpath('//div[@class="topicbox"]/h1/text()')
-    print(tag)
-    soup = BeautifulSoup(html.text, "lxml")
+
+    soup = BeautifulSoup(request.text, "lxml")
     joke_list = soup.find_all("div", class_="text")
+
     joke_list_copy = joke_list.copy()
 
     for element in joke_list_copy:
-        if '<img alt="Карикатура' in str(element):
+        if 'www' in str(element):
             joke_list.remove(element)
+            print("================================================================================================")
+            print("removed")
     # print(joke_list)
 
     new_joke_list = []
     for element in joke_list:
         new_joke = str(element).replace('<div class="text">', "").replace('<br/>', "\n").replace('</div>', "")
         new_joke_list.append(new_joke)
-
     # print(new_joke_list)
+
     for element in new_joke_list:
-        print("======================================================================================================")
+        print("===============================================================================================")
+        print(tag)
         print(element)
 
 
