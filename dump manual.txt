@@ -1,0 +1,12 @@
+create dump:
+        sudo mongodump
+        --db db_name
+        --host host:port
+        --authenticationDatabase db_name
+        -u user_name
+        -p user_password
+        --out dir_path (/home/User/Desktop/dump)
+        --forceTableScan
+
+restore dump:
+        mongorestore

@@ -1,6 +1,7 @@
 import requests
 import lxml.html
 from bs4 import BeautifulSoup
+from filling_db import filling_data
 import time
 
 URL = "https://www.anekdot.ru/tags/"
@@ -10,10 +11,10 @@ HEADERS = {
 
 
 def main():
-    # t = time.time()
+    t = time.time()
     request = requests.get(URL, headers=HEADERS)
     get_tag_list(request)
-    # print(time.time() - t)
+    print(time.time() - t)
 
 
 def get_tag_list(html):
@@ -52,18 +53,15 @@ def get_jokes_and_tags(url):
     request = requests.get(url, headers=HEADERS)
     tree = lxml.html.document_fromstring(request.text)
     tag = tree.xpath('//div[@class="topicbox"]/h1/text()')
+    # print(tag)
 
     soup = BeautifulSoup(request.text, "lxml")
     joke_list = soup.find_all("div", class_="text")
-
     joke_list_copy = joke_list.copy()
 
     for element in joke_list_copy:
         if 'www' in str(element):
             joke_list.remove(element)
-            print("================================================================================================")
-            print("removed")
-    # print(joke_list)
 
     new_joke_list = []
     for element in joke_list:
@@ -71,14 +69,7 @@ def get_jokes_and_tags(url):
         new_joke_list.append(new_joke)
     # print(new_joke_list)
 
-    for element in new_joke_list:
-        print("===============================================================================================")
-        print(tag)
-        print(element)
-
-
-def filling_data():
-    pass
+    filling_data(tag, new_joke_list)
 
 
 if __name__ == '__main__':
