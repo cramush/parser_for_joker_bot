@@ -2,7 +2,7 @@ import requests
 import lxml.html
 from bs4 import BeautifulSoup
 from filling_db import filling_data
-import time
+from threading import Thread
 
 URL = "https://www.anekdot.ru/tags/"
 HEADERS = {
@@ -11,10 +11,8 @@ HEADERS = {
 
 
 def main():
-    t = time.time()
     request = requests.get(URL, headers=HEADERS)
     get_tag_list(request)
-    print(time.time() - t)
 
 
 def get_tag_list(html):
@@ -29,7 +27,8 @@ def get_tag_list(html):
         tag_list.append(url)
     # print(tag_list)
     for tag in tag_list:
-        move_to_last_pages(tag)
+        th = Thread(target=move_to_last_pages, args=(tag, ))
+        th.start()
 
 
 def move_to_last_pages(url):
