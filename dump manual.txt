@@ -9,4 +9,5 @@ create dump:
         --forceTableScan
 
 restore dump:
-        mongorestore
+        sudo mongorestore
+        --host host:port
