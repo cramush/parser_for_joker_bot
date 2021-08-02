@@ -3,7 +3,7 @@ import pymongo
 import config
 
 client = pymongo.MongoClient(f"mongodb://{config.login}:{config.password}@{config.host}/{config.db_name}")
-db = client["jokes_db"]
+db = client["my_mongo"]
 collection = db["jokes"]
 if collection.estimated_document_count() == 0:
     collection.drop()
